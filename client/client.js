@@ -33,29 +33,32 @@ function Cars(){
     }
     
 
-    async function delCar(id){
-        const res = await fetch("/cars"+id,{
-            method:"DELETE"
-        });
-    }
+
 
     return(
         <main id = "cars" className="content">
             <h1>CARS</h1>
 
-            {cars.map(c=> <Car car={c} key = {c.id} />)}
+            {cars.map(c=> <Car car={c} setCars = {setCars}key = {c.id} ></Car>)}
 
         </main>
     )
 
 }
-function Car({car}){
-
+function Car({car, setCars}){
+    async function delCar(id){
+        const res = await fetch("/cars/"+id,{
+            method:"DELETE"
+        });
+        if (res.status == 200)
+            setCars(prev=> prev.filter(c=> c.id != id));
+    }
     return(
         <div id = {car.id} className="car">
             <h2>BRAND: {car.brand}</h2>
             <h3>Model: {car.model}</h3>
             <p><i>Price: {car.price}</i></p>
+            <button onClick={() => delCar(car.id)}>Delete</button>
         </div>
 
     )

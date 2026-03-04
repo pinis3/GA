@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-const cars = [
+let cars = [
   { id: 1, brand: "Toyota", model: "Corolla", price: 22000 },
   { id: 2, brand: "Honda", model: "Civic", price: 24000 },
   { id: 3, brand: "Ford", model: "Mustang", price: 36000 },
@@ -35,6 +35,14 @@ app.get("/cars", (req, res) => {
     res.json(cars);
 });
 
+app.delete("/cars/:id", (req, res) => {
+    let filteredCars = cars.filter(c => c.id != req.params.id);
+    if (filteredCars.length == cars.length){
+        res.status(400).json({error: "Nothing deleted"});
+    }
+    cars = [...filteredCars];
+    res.status(200).json({message: "Car deleted"});
+});
 
 
 
