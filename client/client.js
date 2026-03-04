@@ -15,19 +15,31 @@ function App(){
 }
 
 function Cars(){
+
+    const [cars, setCars] = React.useState([])
+
     React.useEffect(()=>{
         getCars();
     }, [])
 
-    const [cars, setCars] = React.useState([])
+    
 
     async function getCars(){
 
         const res = await fetch("/cars");
         const cars = await res.json();
         setCars(cars)
-        console.log(cars);}
-        return(
+        console.log(cars);
+    }
+    
+
+    async function delCar(id){
+        const res = await fetch("/cars"+id,{
+            method:"DELETE"
+        });
+    }
+
+    return(
         <main id = "cars" className="content">
             <h1>CARS</h1>
 
