@@ -34,7 +34,15 @@ app.use(express.static("client"));
 app.get("/cars", (req, res) => {
     res.json(cars);
 });
-
+app.post("/createcar", (req, res) => {
+    const car = {}
+    car.id = "id_"+Date.now();
+    car.brand = req.body.brand || "no_brand";
+    car.model = req.body.model || "no_model";
+    car.price = req.body.price || 0;
+    cars.push(car);
+    res.status(201).json({message: "Car created", car: car});
+});
 app.delete("/cars/:id", (req, res) => {
     let filteredCars = cars.filter(c => c.id != req.params.id);
     if (filteredCars.length == cars.length){
