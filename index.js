@@ -52,5 +52,17 @@ app.delete("/cars/:id", (req, res) => {
     res.status(200).json({message: "Car deleted"});
 });
 
+app.put("/cars/:id", (req, res) => {
+    const car = cars.find(c => c.id == req.params.id);
+    if (!car) {
+        return res.status(404).json({error: "Car not found"});
+    }
+    
+    car.brand = req.body.brand || car.brand;
+    car.model = req.body.model || car.model;
+    car.price = req.body.price || car.price;
+    
+    res.status(200).json({message: "Car updated", car: car});
+});
 
 

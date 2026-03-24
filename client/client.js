@@ -34,23 +34,61 @@ function Cars({cars, setCars}){
 }
 
 function Car({car, setCars}){
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [formData, setFormData] = React.useState({
+        brand: car.brand,
+        model: car.model,
+        price: car.price
+    });
+
     async function delCar(id){
-        const res = await fetch("/cars/"+id,{
+        const res = await fetch("/cars/"+id, {
             method:"DELETE"
         });
         if (res.status == 200)
-            setCars(prev=> prev.filter(c=> c.id != id));
+            setCars(prev => prev.filter(c => c.id != id));
     }
+
+    async function updateCar(){
+        const res = await fetch("/cars/"+car.id, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+        if(data.error) return;
+        
+        setCars(prev => prev.map(c => c.id === car.id ? data.car : c));
+        setIsEditing(false);
+    }
+
+    if(isEditing){
+        return(
+            <div id={car.id} className="car editing">
+                <input type="text" value={formData.brand} 
+                    onChange={(e) => setFormData({...formData, brand: e.target.value})}
+                    placeholder="Brand"/>
+                <input type="text" value={formData.model}
+                    onChange={(e) => setFormData({...formData, model: e.target.value})}
+                    placeholder="Model"/>
+                <input type="number" value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    placeholder="Price"/>
+                <button onClick={updateCar}>Spara</button>
+                <button onClick={() => setIsEditing(false)}>Avbryt</button>
+            </div>
+        );
+    }
+
     return(
-        <div id = {car.id} className="car">
+        <div id={car.id} className="car">
             <h2>BRAND: {car.brand}</h2>
             <h3>Model: {car.model}</h3>
             <p><i>Price: {car.price}</i></p>
-            <button onClick={() => delCar(car.id)}>Delete</button>
+            <button onClick={() => setIsEditing(true)}>Redigera</button>
+            <button onClick={() => delCar(car.id)}>Radera</button>
         </div>
-
-    )
-
+    );
 }
 
 function CreateCar({setCars}){
