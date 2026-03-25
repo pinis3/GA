@@ -2,9 +2,31 @@ ReactDOM.createRoot(document.querySelector("#app")).render(<App />)
 
 function App(){
     const [cars, setCars] = React.useState([])
+    const [authenticated, setAuthenticated] = React.useState(false)
+    const [email, setEmail] = React.useState("")
+
+    React.useEffect(() => {
+        checkAuth();
+    }, [])
+
+    async function checkAuth(){
+        try {
+            const res = await fetch("/status");
+            const data = await res.json();
+            setAuthenticated(data.authenticated);
+            if (data.email) setEmail(data.email);
+        } catch (err) {
+            console.error("Auth check failed:", err);
+        }
+    }
+
+    if (!authenticated) {
+        return <Login setAuthenticated={setAuthenticated} setEmail={setEmail} />;
+    }
+
     return(
        <>
-        <Header/>
+        <Header email={email} setAuthenticated={setAuthenticated} setEmail={setEmail} />
         <main>
         <Home></Home>
         <Cars cars={cars} setCars={setCars}></Cars>
@@ -14,15 +36,85 @@ function App(){
     )
 }
 
+function Login({ setAuthenticated, setEmail }){
+    const [formData, setFormData] = React.useState({ email: "", password: "" })
+    const [isRegistering, setIsRegistering] = React.useState(false)
+    const [error, setError] = React.useState("")
+
+    async function handleSubmit(e){
+        e.preventDefault();
+        setError("");
+        
+        const endpoint = isRegistering ? "/register" : "/login";
+        
+        try {
+            const res = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setAuthenticated(true);
+                setEmail(data.email);
+            } else {
+                setError(data.error || "Authentication failed");
+            }
+        } catch (err) {
+            setError("Server error");
+        }
+    }
+
+    return(
+        <div className="login">
+            <h1>{isRegistering ? "Register" : "Login"}</h1>
+            {error && <p style={{color: "red"}}>{error}</p>}
+            <form onSubmit={handleSubmit}>
+                <input 
+                    type="email" 
+                    placeholder="Email" 
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    required 
+                />
+                <input 
+                    type="password" 
+                    placeholder="Password" 
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    required 
+                />
+                <button type="submit">{isRegistering ? "Register" : "Login"}</button>
+            </form>
+            <button onClick={() => {
+                setIsRegistering(!isRegistering);
+                setError("");
+            }}>
+                {isRegistering ? "Already have an account? Login" : "Need an account? Register"}
+            </button>
+        </div>
+    )
+}
+
 function Cars({cars, setCars}){
     React.useEffect(()=>{
         getCars();
     }, [])
 
     async function getCars(){
-        const res = await fetch("/cars");
-        const data = await res.json();
-        setCars(data)
+        try {
+            const res = await fetch("/cars");
+            if (res.status === 401) {
+                alert("Session expired. Please login again.");
+                return;
+            }
+            const data = await res.json();
+            setCars(data);
+        } catch (err) {
+            console.error("Error fetching cars:", err);
+        }
     }
 
     return(
@@ -140,15 +232,21 @@ function Home(){
 
 }
 
-function Header(){
+function Header({ email, setAuthenticated, setEmail }){
+    async function logout(){
+        await fetch("/logout", { method: "POST" });
+        setAuthenticated(false);
+        setEmail("");
+    }
 
     return(
         <header>
             <nav>
                 <a href="#home">HOME</a>
                 <a href="#cars">CARS</a>
+                <span>Welcome, {email}</span>
+                <button onClick={logout}>Logout</button>
             </nav>
         </header>
     )
-
 }

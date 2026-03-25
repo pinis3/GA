@@ -1,5 +1,15 @@
 const express = require('express');
 const app = express();
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
+
+
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {}
+  }));
 
 let cars = [
   { id: 1, brand: "Toyota", model: "Corolla", price: 22000 },
@@ -14,7 +24,21 @@ let cars = [
   { id: 10, brand: "Volkswagen", model: "Golf", price: 23000 }
 ];
 
+let users = [];
 
+// Middleware för att hantera json-data i post-requests
+app.use(express.json());
+
+app.use(express.static("client"));
+
+// Authentication middleware
+function isAuthenticated(req, res, next) {
+    if (req.session.auth) {
+        next();
+    } else {
+        res.status(401).json({ error: "Not authenticated" });
+    }
+}
 
 const port = process.env.port || 3000;
 
@@ -22,19 +46,86 @@ app.listen(port, () => {
     console.log("Server running on http://localhost:" + port);
 });
 
-// Middleware för att hantera json-data i post-requests
-app.use(express.json());
-
-app.use(express.static("client"));
 
 
+// AUTH ROUTES
 
-// API-routes
+app.post("/register", (req, res) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+    }
+    
+    if (users.find(u => u.email === email)) {
+        return res.status(400).json({ error: "User already exists" });
+    }
+    
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const newUser = {
+        id: "user-" + Date.now(),
+        email,
+        password: hashedPassword,
+        type: "customer"
+    };
+    
+    users.push(newUser);
+    
+    // Auto login after registration
+    req.session.auth = true;
+    req.session.email = email;
+    req.session.type = newUser.type;
+    
+    res.status(201).json({ message: "User registered and logged in", email });
+});
 
-app.get("/cars", (req, res) => {
+app.post("/login", (req, res) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+    }
+    
+    const user = users.find(u => u.email === email);
+    
+    if (!user) {
+        return res.status(401).json({ error: "User not found" });
+    }
+    
+    const passwordMatch = bcrypt.compareSync(password, user.password);
+    
+    if (!passwordMatch) {
+        return res.status(401).json({ error: "Incorrect password" });
+    }
+    
+    req.session.auth = true;
+    req.session.email = email;
+    req.session.type = user.type;
+    
+    res.json({ message: "Logged in successfully", email });
+});
+
+app.post("/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) return res.status(500).json({ error: "Could not log out" });
+        res.json({ message: "Logged out" });
+    });
+});
+
+app.get("/status", (req, res) => {
+    if (req.session.auth) {
+        res.json({ authenticated: true, email: req.session.email });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
+
+// CAR API ROUTES (Protected)
+
+app.get("/cars", isAuthenticated, (req, res) => {
     res.json(cars);
 });
-app.post("/createcar", (req, res) => {
+app.post("/createcar", isAuthenticated, (req, res) => {
     const car = {}
     car.id = "id_"+Date.now();
     car.brand = req.body.brand || "no_brand";
@@ -43,7 +134,7 @@ app.post("/createcar", (req, res) => {
     cars.push(car);
     res.status(201).json({message: "Car created", car: car});
 });
-app.delete("/cars/:id", (req, res) => {
+app.delete("/cars/:id", isAuthenticated, (req, res) => {
     let filteredCars = cars.filter(c => c.id != req.params.id);
     if (filteredCars.length == cars.length){
         res.status(400).json({error: "Nothing deleted"});
@@ -52,7 +143,7 @@ app.delete("/cars/:id", (req, res) => {
     res.status(200).json({message: "Car deleted"});
 });
 
-app.put("/cars/:id", (req, res) => {
+app.put("/cars/:id", isAuthenticated, (req, res) => {
     const car = cars.find(c => c.id == req.params.id);
     if (!car) {
         return res.status(404).json({error: "Car not found"});
@@ -64,5 +155,4 @@ app.put("/cars/:id", (req, res) => {
     
     res.status(200).json({message: "Car updated", car: car});
 });
-
 
