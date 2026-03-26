@@ -1,6 +1,6 @@
 ReactDOM.createRoot(document.querySelector("#app")).render(<App />)
 
-function App(){
+function App() {
     const [cars, setCars] = React.useState([])
     const [authenticated, setAuthenticated] = React.useState(false)
     const [email, setEmail] = React.useState("")
@@ -9,7 +9,7 @@ function App(){
         checkAuth();
     }, [])
 
-    async function checkAuth(){
+    async function checkAuth() {
         try {
             const res = await fetch("/status");
             const data = await res.json();
@@ -21,32 +21,37 @@ function App(){
     }
 
     if (!authenticated) {
-        return <Login setAuthenticated={setAuthenticated} setEmail={setEmail} />;
+        return (
+            <>
+                <Login setAuthenticated={setAuthenticated} setEmail={setEmail} />
+                <Cars cars={cars} setCars={setCars}></Cars>
+            </>)
+
     }
 
-    return(
-       <>
-        <Header email={email} setAuthenticated={setAuthenticated} setEmail={setEmail} />
-        <main>
-        <Home></Home>
-        <Cars cars={cars} setCars={setCars}></Cars>
-        <CreateCar setCars={setCars}></CreateCar>
-        </main>
-       </>
+    return (
+        <>
+            <Header email={email} setAuthenticated={setAuthenticated} setEmail={setEmail} />
+            <main>
+                <Home></Home>
+                <Cars authenticated ={authenticated} cars={cars} setCars={setCars}></Cars>
+                <CreateCar setCars={setCars}></CreateCar>
+            </main>
+        </>
     )
 }
 
-function Login({ setAuthenticated, setEmail }){
+function Login({ setAuthenticated, setEmail }) {
     const [formData, setFormData] = React.useState({ email: "", password: "" })
     const [isRegistering, setIsRegistering] = React.useState(false)
     const [error, setError] = React.useState("")
 
-    async function handleSubmit(e){
+    async function handleSubmit(e) {
         e.preventDefault();
         setError("");
-        
+
         const endpoint = isRegistering ? "/register" : "/login";
-        
+
         try {
             const res = await fetch(endpoint, {
                 method: "POST",
@@ -67,24 +72,24 @@ function Login({ setAuthenticated, setEmail }){
         }
     }
 
-    return(
+    return (
         <div className="login">
             <h1>{isRegistering ? "Register" : "Login"}</h1>
-            {error && <p style={{color: "red"}}>{error}</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
             <form onSubmit={handleSubmit}>
-                <input 
-                    type="email" 
-                    placeholder="Email" 
+                <input
+                    type="email"
+                    placeholder="Email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    required 
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
                 />
-                <input 
-                    type="password" 
-                    placeholder="Password" 
+                <input
+                    type="password"
+                    placeholder="Password"
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    required 
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
                 />
                 <button type="submit">{isRegistering ? "Register" : "Login"}</button>
             </form>
@@ -98,12 +103,12 @@ function Login({ setAuthenticated, setEmail }){
     )
 }
 
-function Cars({cars, setCars}){
-    React.useEffect(()=>{
+function Cars({ cars, setCars, authenticated }) {
+    React.useEffect(() => {
         getCars();
     }, [])
 
-    async function getCars(){
+    async function getCars() {
         try {
             const res = await fetch("/cars");
             if (res.status === 401) {
@@ -117,15 +122,15 @@ function Cars({cars, setCars}){
         }
     }
 
-    return(
-        <main id = "cars" className="content">
+    return (
+        <main id="cars" className="content">
             <h1>CARS</h1>
-            {cars.map(c=> <Car car={c} setCars={setCars} key={c.id}></Car>)}
+            {cars.map(c => <Car authenticated={authenticated} car={c} setCars={setCars} key={c.id}></Car>)}
         </main>
     )
 }
 
-function Car({car, setCars}){
+function Car({ authenticated, car, setCars }) {
     const [isEditing, setIsEditing] = React.useState(false);
     const [formData, setFormData] = React.useState({
         brand: car.brand,
@@ -133,59 +138,58 @@ function Car({car, setCars}){
         price: car.price
     });
 
-    async function delCar(id){
-        const res = await fetch("/cars/"+id, {
-            method:"DELETE"
+    async function delCar(id) {
+        const res = await fetch("/cars/" + id, {
+            method: "DELETE"
         });
         if (res.status == 200)
             setCars(prev => prev.filter(c => c.id != id));
     }
 
-    async function updateCar(){
-        const res = await fetch("/cars/"+car.id, {
+    async function updateCar() {
+        const res = await fetch("/cars/" + car.id, {
             method: "PUT",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
         const data = await res.json();
-        if(data.error) return;
-        
+        if (data.error) return;
+
         setCars(prev => prev.map(c => c.id === car.id ? data.car : c));
         setIsEditing(false);
     }
 
-    if(isEditing){
-        return(
+    if (isEditing) {
+        return (
             <div id={car.id} className="car editing">
-                <input type="text" value={formData.brand} 
-                    onChange={(e) => setFormData({...formData, brand: e.target.value})}
-                    placeholder="Brand"/>
+                <input type="text" value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    placeholder="Brand" />
                 <input type="text" value={formData.model}
-                    onChange={(e) => setFormData({...formData, model: e.target.value})}
-                    placeholder="Model"/>
+                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    placeholder="Model" />
                 <input type="number" value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    placeholder="Price"/>
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="Price" />
                 <button onClick={updateCar}>Spara</button>
                 <button onClick={() => setIsEditing(false)}>Avbryt</button>
             </div>
         );
     }
 
-    return(
+    return (
         <div id={car.id} className="car">
             <h2>BRAND: {car.brand}</h2>
             <h3>Model: {car.model}</h3>
-            <p><i>Price: {car.price}</i></p>
-            <button onClick={() => setIsEditing(true)}>Redigera</button>
-            <button onClick={() => delCar(car.id)}>Radera</button>
+            <p><i>Price: {car.price} kr</i></p>
+            {authenticated ? <div><button onClick={() => setIsEditing(true)}>Redigera</button>  <button onClick={() => delCar(car.id)}>Radera</button></div> :""}
         </div>
     );
 }
 
-function CreateCar({setCars}){
+function CreateCar({ setCars }) {
 
-    async function saveCar(e){
+    async function saveCar(e) {
         e.preventDefault();
 
         const formData = new FormData(e.target);
@@ -202,44 +206,44 @@ function CreateCar({setCars}){
             },
             body: JSON.stringify(car)
         });
-        
+
         const data = await res.json();
-        if(data.error) return;
+        if (data.error) return;
         setCars(prev => [...prev, data.car]);
         e.target.reset();
     }
 
-    return(
+    return (
         <div className="create">
             <form onSubmit={saveCar}>
-            <input type="text" name="brand" placeholder="Brand" required />
-            <input type="text" name="model" placeholder="Model" required />
-            <input type="number" name="price" placeholder="Price" required />
-            <input type="submit" value="Create Car" />
+                <input type="text" name="brand" placeholder="Brand" required />
+                <input type="text" name="model" placeholder="Model" required />
+                <input type="number" name="price" placeholder="Price" required />
+                <input type="submit" value="Create Car" />
             </form>
         </div>
     )
 
 }
 
-function Home(){
+function Home() {
 
-    return(
-        <main id = "home" className="content">
+    return (
+        <main id="home" className="content">
             <h1>HOME</h1>
         </main>
     )
 
 }
 
-function Header({ email, setAuthenticated, setEmail }){
-    async function logout(){
+function Header({ email, setAuthenticated, setEmail }) {
+    async function logout() {
         await fetch("/logout", { method: "POST" });
         setAuthenticated(false);
         setEmail("");
     }
 
-    return(
+    return (
         <header>
             <nav>
                 <a href="#home">HOME</a>

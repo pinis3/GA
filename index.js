@@ -120,9 +120,9 @@ app.get("/status", (req, res) => {
     }
 });
 
-// CAR API ROUTES (Protected)
+// CAR API ROUTES
 
-app.get("/cars", isAuthenticated, (req, res) => {
+app.get("/cars", (req, res) => {
     res.json(cars);
 });
 app.post("/createcar", isAuthenticated, (req, res) => {
