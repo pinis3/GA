@@ -1,15 +1,49 @@
+/* Custom Properties / Theme Variables */
+:root {
+    --bg-main: #0b0b0c;
+    --text-primary: #f5f5f7;
+    --text-secondary: #a1a1a6;
+    --text-tertiary: #86868b;
+    
+    --glass-bg-faint: rgba(255, 255, 255, 0.04);
+    --glass-bg-base: rgba(255, 255, 255, 0.06);
+    --glass-bg-hover: rgba(255, 255, 255, 0.12);
+    
+    --glass-border-faint: rgba(255, 255, 255, 0.06);
+    --glass-border-base: rgba(255, 255, 255, 0.08);
+    --glass-border-active: rgba(255, 255, 255, 0.2);
+    --glass-border-focus: rgba(255, 255, 255, 0.15);
+}
+
+/* Smooth scrolling feel */
+html {
+    scroll-behavior: smooth;
+}
+
 /* Base reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: "Inter", sans-serif;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-    background: #0b0b0c;
-    color: #f5f5f7;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale; /* Added for Firefox consistency */
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--glass-border-focus);
+    border-radius: 10px;
 }
 
 /* Layout */
@@ -23,9 +57,11 @@ main {
 header {
     position: sticky;
     top: 0;
+    z-index: 100; /* Added z-index to ensure it stays above scrolling content */
     backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px); /* Safari support */
     background: rgba(20, 20, 22, 0.6);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid var(--glass-border-faint);
     padding: 1rem 2rem;
 }
 
@@ -37,66 +73,81 @@ nav {
 
 nav a {
     text-decoration: none;
-    color: #a1a1a6;
+    color: var(--text-secondary);
     font-size: 0.9rem;
-    transition: 0.2s;
+    transition: color 0.2s ease;
 }
 
-nav a:hover {
-    color: #ffffff;
+nav a:hover,
+nav a:focus-visible {
+    color: var(--text-primary);
+    outline: none; /* Handled by color change, but can add underline if preferred */
 }
 
 nav span {
     margin-left: auto;
-    color: #86868b;
+    color: var(--text-tertiary);
     font-size: 0.85rem;
 }
 
 /* Buttons (Apple style) */
 button,
 input[type="submit"] {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #f5f5f7;
+    background: var(--glass-bg-base);
+    border: 1px solid var(--glass-border-base);
+    color: var(--text-primary);
     padding: 0.45rem 0.8rem;
     font-size: 0.8rem;
     border-radius: 8px;
     cursor: pointer;
     backdrop-filter: blur(6px);
-    transition: all 0.2s ease;
+    -webkit-backdrop-filter: blur(6px);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 button:hover,
 input[type="submit"]:hover {
-    background: rgba(255,255,255,0.12);
+    background: var(--glass-bg-hover);
+}
+
+button:focus-visible,
+input[type="submit"]:focus-visible {
+    outline: none;
+    border-color: var(--text-secondary);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 /* Inputs */
 input {
     width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #f5f5f7;
+    background: var(--glass-bg-faint);
+    border: 1px solid var(--glass-border-base);
+    color: var(--text-primary);
     padding: 0.55rem;
     font-size: 0.85rem;
     border-radius: 8px;
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus {
     outline: none;
-    border-color: rgba(255,255,255,0.2);
+    border-color: var(--glass-border-active);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05); /* Subtle focus ring */
 }
 
 /* Login card */
 .login {
     max-width: 340px;
     margin: 5rem auto;
-    padding: 2rem;
+    padding: 1.5rem;
+    padding-top: 1rem;
     border-radius: 16px;
-    background: rgba(255,255,255,0.04);
+    background: var(--glass-bg-faint);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.08);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border-base);
 }
 
 .login h1 {
@@ -108,30 +159,32 @@ input:focus {
 .login form {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.8rem; /* Slightly increased for better tap targets on mobile */
 }
 
 /* Section titles */
 .content h1 {
     font-size: 0.8rem;
-    color: #86868b;
+    color: var(--text-tertiary);
+    text-transform: uppercase; /* Common in this aesthetic to pair with letter-spacing */
     letter-spacing: 1.2px;
     margin-bottom: 1rem;
 }
 
 /* Car cards (Apple cards) */
 .car {
-    background: rgba(255,255,255,0.04);
+    background: var(--glass-bg-faint);
     border-radius: 14px;
     padding: 1.2rem;
     margin-bottom: 0.9rem;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border-faint);
     backdrop-filter: blur(12px);
-    transition: 0.2s ease;
+    -webkit-backdrop-filter: blur(12px);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .car:hover {
-    background: rgba(255,255,255,0.06);
+    background: var(--glass-bg-base);
 }
 
 .car h2 {
@@ -141,18 +194,18 @@ input:focus {
 
 .car h3 {
     font-size: 0.85rem;
-    color: #a1a1a6;
+    color: var(--text-secondary);
 }
 
 .car p {
     font-size: 0.8rem;
-    color: #86868b;
+    color: var(--text-tertiary);
     margin-top: 0.3rem;
 }
 
 /* Editing mode */
 .car.editing {
-    border-color: rgba(255,255,255,0.15);
+    border-color: var(--glass-border-focus);
 }
 
 /* Card buttons */
@@ -166,7 +219,7 @@ input:focus {
 .create {
     margin-top: 2rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid var(--glass-border-faint);
 }
 
 .create form {
@@ -174,17 +227,10 @@ input:focus {
     gap: 0.6rem;
 }
 
-/* Smooth scrolling feel */
-html {
-    scroll-behavior: smooth;
+.login-btn {
+    margin-bottom: 0.8rem;
 }
 
-/* Subtle scrollbar */
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.15);
-    border-radius: 10px;
+.register-btn{
+    width: 100%;
 }

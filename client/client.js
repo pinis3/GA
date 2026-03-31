@@ -91,9 +91,9 @@ function Login({ setAuthenticated, setEmail }) {
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
                 />
-                <button type="submit">{isRegistering ? "Register" : "Login"}</button>
+                <button className="login-btn" type="submit">{isRegistering ? "Register" : "Login"}</button>
             </form>
-            <button onClick={() => {
+            <button className="register-btn" onClick={() => {
                 setIsRegistering(!isRegistering);
                 setError("");
             }}>
